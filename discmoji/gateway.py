@@ -50,18 +50,15 @@ class GatewayManager:
             payload = Payload(code=1,d=None)
             jsonized = payload.jsonize()
         async with self.ws as ws:
-          if event.code == OPCODES.HELLO:  
-            # handles the heartbeat if it's the first one
-            await asyncio.sleep(float(self.HB_INT)*uniform(float(0),float(1)))
-          else:
-            await asyncio.sleep(float(self.HB_INT))   
+            if event.code == OPCODES.HELLO:
+                # handles the heartbeat if it's the first one
+                await asyncio.sleep(float(self.HB_INT) * uniform(float(0), float(1)))
+            else:
+                await asyncio.sleep(float(self.HB_INT))
             await ws.send_str(data=jsonized)
-            # captures the next event 
+            # captures the next event
             await self._abstractor()
 
-
-            
-    
     async def _hand_shake(self):
         # handles the initial connection process
         async with self.ws as ws:
@@ -93,18 +90,19 @@ class GatewayManager:
             self.client = aiohttp.ClientSession()
             self.ws = self.client.ws_connect(self.resume_url)
             async with self.ws as ws:    
-             try:   
-                sending = Payload(code=6,d={
-                    "token": self.token,
-                    "session_id": self.session_id,
-                    "seq": self.current_seq
-                })
-                jsonized = sending.jsonize()
-                sent = await ws.send_str(jsonized)
-                response = await ws.receive_json()
-                if response == OPCODES.RESUME:
-                    initiatelogging.info("Successfully reconnected to gateway using new url.")
-             except aiohttp.ClientError as e:
-                 raise DiscmojiAPIError(f"Discmoji couldn't reconnect to the gateway. {e.args}. raw payload:{self.current_payload.data}")
-        
-        
+                try:   
+                    sending = Payload(code=6,d={
+                        "token": self.token,
+                        "session_id": self.session_id,
+                        "seq": self.current_seq
+                    })
+                    jsonized = sending.jsonize()
+                    await ws.send_str(jsonized)
+                    response = await ws.receive_json()
+                    if response == OPCODES.RESUME:
+                        initiatelogging.info("Successfully reconnected to gateway using new url.")
+                except aiohttp.ClientError as e:
+                    raise DiscmojiAPIError(f"Discmoji couldn't reconnect to the gateway. {e.args}. raw payload:{self.current_payload.data}")
+                except Exception as e:
+                    initiatelogging.error(f"Unexpected error during reconnection: {e}")
+                    raise

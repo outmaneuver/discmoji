@@ -8,12 +8,14 @@ Client = Bot(token="blah blah",intents=123213123)
 
 
 @Client.command(name="test1")
-def commd(ctx: Invoked):
-    asyncio.run(Client.get_guild(1234567))
+async def commd(ctx: Invoked):
+    try:
+        await Client.get_guild(1234567)
+    except Exception as e:
+        print(f"Error in command: {e}")
 
 @commd.error()
-# debug: Unwrap _Wrapped on
-def error_cool(ctx: Invoked,error: Exception):
+async def error_cool(ctx: Invoked, error: Exception):
     print("ooh thank you demo-py!!")
 
 asyncio.run(Client.connect)
