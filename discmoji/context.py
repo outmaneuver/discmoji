@@ -10,9 +10,6 @@ from .message import Message
 from .messagesubtypes import *
 from .types import Payload
 import json
-from .logger import get_logger
-
-logger = get_logger(__name__)
 
 class Invoked:
     """A class that hosts the data of where a prefix/slash command was used."""

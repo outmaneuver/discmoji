@@ -1,8 +1,5 @@
 import sys
 from typing import Callable, Dict, List, Union
-from ..logger import get_logger
-
-logger = get_logger(__name__)
 
 class CLI:
     def __init__(self):

@@ -3,9 +3,6 @@ import aiohttp
 from .overwrites import ChannelPermissionOverwrite
 from ._http import EndpointManager
 from .guild import Guild
-from .logger import get_logger
-
-logger = get_logger(__name__)
 
 class GuildTextChannel:
     def __init__(self, _data: dict, __bindedhttp: EndpointManager):

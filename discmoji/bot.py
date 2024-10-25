@@ -29,9 +29,6 @@ from .guild import Guild
 from .types import OPCODES
 from .intents import BotIntents
 from .context import Invoked
-from .logger import get_logger
-
-logger = get_logger(__name__)
 
 class CommandManager:
     def __init__(self, bot: 'Bot'):
@@ -41,22 +38,24 @@ class CommandManager:
     def command(self, name: str):
         """A decorator that registers a command with the specified name."""
         def decor(func: Callable):
-            self._all_cmds.append(Command(name=name))
-            return Command(name=name)
+            command = Command(name=name)
+            self._all_cmds.append(command)
+            return command
         return decor
 
 class GuildManager:
     def __init__(self, bot: 'Bot'):
         self.bot = bot
-        self._guild_cache: List[Guild] = []
+        self._guild_cache: Dict[int, Guild] = {}
 
     async def get_guild(self, id: int) -> Guild | None:
         """Gets a guild from the bot's current joined guilds, through the id."""
-        for guild in self._guild_cache:
-            if guild.id == id:
-                return guild
+        if id in self._guild_cache:
+            return self._guild_cache[id]
         response = await self.bot._http.send_request('get', f"/guilds/{id}")
-        return Guild(response.data)
+        guild = Guild(response.data)
+        self._guild_cache[id] = guild
+        return guild
 
     async def total_guilds(self) -> int:
         """Returns the total number of guilds the bot is in."""

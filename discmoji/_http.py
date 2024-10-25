@@ -5,9 +5,7 @@ from .types import Payload, OPCODES
 import json
 from .errors import DiscmojiRatelimit
 import warnings
-from .logger import get_logger
 
-logger = get_logger(__name__)
 
 class EndpointManager:
     def __init__(self, token: str):
@@ -25,15 +23,18 @@ class EndpointManager:
             return (True, int(retry_after))
         return (False, 0)
 
+    def decode_json(self, response: aiohttp.ClientResponse) -> dict:
+        parsed = await response.read()
+        decoded = parsed.decode(encoding="utf-8")
+        return json.loads(decoded)
+
     async def _send(self, method: str, route: str) -> Payload:
         async with self.httpclient as client:
             sent = await client.request(method, self.base_url + route)
-            parsed = await sent.read()
-            decoded = parsed.decode(encoding="utf-8")
             check, retry_after = self.ratelimited(sent)
             if check:
                 warnings.warn(DiscmojiRatelimit(f"{retry_after}"))
-            return Payload(code=OPCODES.HTTP, d=json.loads(decoded), event_name="HTTP_REQUEST_RECEIVED")
+            return Payload(code=OPCODES.HTTP, d=self.decode_json(sent), event_name="HTTP_REQUEST_RECEIVED")
 
     async def send_request(self, method: Literal['get', 'post', 'put', 'patch', 'delete'], route: str) -> Payload:
         return await self._send(method, route)
