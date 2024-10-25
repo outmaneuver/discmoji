@@ -10,9 +10,9 @@ from .message import Message
 from .messagesubtypes import *
 from .types import Payload
 import json
-import logging
+from .logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class Invoked:
     """A class that hosts the data of where a prefix/slash command was used."""
@@ -41,23 +41,19 @@ class Invoked:
     
     
     async def send_message(self, text: Optional[str] = None, embeds: Optional[Union[Embed, List[Embed]]] = None) -> Message:
-        try:
-            data = {}
-            if text:
-                data["content"] = text
-            if embeds:
-                if isinstance(embeds, Embed):
-                    data["embeds"] = [embeds._dictize()]
-                else:
-                    data["embeds"] = [embed._dictize() for embed in embeds]
-            msg = await self._endpoint.httpclient.post(f'/channels/{self.channel.id}/messages', json=data)
-            read = await msg.read()
-            decode = read.decode()
-            returned = json.loads(decode)
-            return Message(Payload(None, returned, None, None).data)
-        except Exception as e:
-            logger.error(f"Error in send_message method: {e}")
-            raise
+        data = {}
+        if text:
+            data["content"] = text
+        if embeds:
+            if isinstance(embeds, Embed):
+                data["embeds"] = [embeds._dictize()]
+            else:
+                data["embeds"] = [embed._dictize() for embed in embeds]
+        msg = await self._endpoint.httpclient.post(f'/channels/{self.channel.id}/messages', json=data)
+        read = await msg.read()
+        decode = read.decode()
+        returned = json.loads(decode)
+        return Message(Payload(None, returned, None, None).data)
     
     async def invoked_cmd_handler(self):
         await asyncio.sleep(5.5)

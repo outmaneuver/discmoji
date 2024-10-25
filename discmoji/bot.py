@@ -29,9 +29,9 @@ from .guild import Guild
 from .types import OPCODES
 from .intents import BotIntents
 from .context import Invoked
-import logging
+from .logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class CommandManager:
     def __init__(self, bot: 'Bot'):
@@ -81,19 +81,15 @@ class Bot:
         self.info = self._gateway_client.captured_app_info
 
     async def connect(self):
-        try:
-            # this just inits the gateway connection
-            await self._gateway_client._hand_shake()
-            # self-explanatory, handles the heartbeats
-            await self._gateway_client._handle_heartbeats()
-            self.guild_manager._all_guilds_setter()
-            if self._gateway_client.current_payload.code == OPCODES.RECONNECT:
-                await self._gateway_client._reconnect_with_data()
-            invokedsetup: Invoked = Invoked(self._http, self._gateway_client, self, self._gateway_client.current_payload.data["id"] if self._gateway_client.current_payload.data["id"] is not None else None)
-            await invokedsetup.invoked_cmd_handler()
-        except Exception as e:
-            logger.error(f"Error in connect method: {e}")
-            raise
+        # this just inits the gateway connection
+        await self._gateway_client._hand_shake()
+        # self-explanatory, handles the heartbeats
+        await self._gateway_client._handle_heartbeats()
+        self.guild_manager._all_guilds_setter()
+        if self._gateway_client.current_payload.code == OPCODES.RECONNECT:
+            await self._gateway_client._reconnect_with_data()
+        invokedsetup: Invoked = Invoked(self._http, self._gateway_client, self, self._gateway_client.current_payload.data["id"] if self._gateway_client.current_payload.data["id"] is not None else None)
+        await invokedsetup.invoked_cmd_handler()
 
 class ScalableBot(Bot):
     pass

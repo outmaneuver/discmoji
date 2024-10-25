@@ -2,7 +2,9 @@ from typing import *
 import functools
 import asyncio
 from asyncio import gather
+from .logger import get_logger
 
+logger = get_logger(__name__)
 
 class Command:
     """Represents a prefix command. Not for slash commands, those have a seperate class."""
